@@ -482,6 +482,11 @@ VISH.Editor.Object = (function(V,$,undefined){
 		V.Editor.Tools.loadToolsForZone(current_area);
 	};
 	
+	var __dx;
+	var __dy;
+	var __scale = 1.38;
+	var __recoupLeft, __recoupTop;
+
 	/**
 	 * param style: optional param with the style, used in editing presentation
 	 */
@@ -517,7 +522,37 @@ VISH.Editor.Object = (function(V,$,undefined){
 		$(wrapperDiv).append(wrapperTag);
 		
 		$("#" + idToDrag).draggable({
-			cursor : "move"
+			cursor : "move",
+			drag: function ( event, ui ) {
+				console.log("dragging")
+				//resize bug fix ui drag `enter code here`
+				__dx = ui.position.left - ui.originalPosition.left;
+				__dy = ui.position.top - ui.originalPosition.top;
+				ui.position.left = ui.originalPosition.left + ( __dx/__scale);
+				ui.position.top = ui.originalPosition.top + ( __dy/__scale );
+				//ui.position.left = ui.originalPosition.left + ( __dx);
+				//ui.position.top = ui.originalPosition.top + ( __dy );
+				//
+				ui.position.left += __recoupLeft;
+				ui.position.top += __recoupTop;
+			},
+			start: function ( event, ui ) {
+				$( this ).css( 'cursor', 'pointer' );
+				//resize bug fix ui drag
+				var left = parseInt( $( this ).css( 'left' ), 10 );
+				left = isNaN( left ) ? 0 : left;
+				var top = parseInt( $( this ).css( 'top' ), 10 );
+				top = isNaN( top ) ? 0 : top;
+				__recoupLeft = left - ui.position.left;
+				__recoupTop = top - ui.position.top;
+			},
+			stop: function ( event, ui ) {
+				$( this ).css( 'cursor', 'default' );				               
+			},
+			create: function ( event, ui ) {
+				$( this ).attr( 'oriLeft', $( this ).css( 'left' ) );
+				$( this ).attr( 'oriTop', $( this ).css( 'top' ) );
+			}
 		});
 
 		_adjustWrapperOfObject(idToResize, current_area);

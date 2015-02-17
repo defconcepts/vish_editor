@@ -62,6 +62,11 @@ VISH.Editor.Flashcard = (function(V,$,undefined){
 		_drawPois(fc,POIdata);
 	}
 
+	var __dx;
+	var __dy;
+	var __scale = 1.38;
+	var __recoupLeft, __recoupTop;
+
 	/*
 	 * Redraw the pois of the flashcard
 	 * This actions must be called after thumbnails have been rewritten
@@ -114,7 +119,28 @@ VISH.Editor.Flashcard = (function(V,$,undefined){
 		//Drag&Drop POIs
 
 		$("div.draggable_sc_div").draggable({
+			drag: function ( event, ui ) {
+				console.log("dragging fc")
+				//resize bug fix ui drag `enter code here`
+				__dx = ui.position.left - ui.originalPosition.left;
+				__dy = ui.position.top - ui.originalPosition.top;
+				ui.position.left = ui.originalPosition.left + ( __dx/__scale);
+				ui.position.top = ui.originalPosition.top + ( __dy/__scale );
+				//ui.position.left = ui.originalPosition.left + ( __dx);
+				//ui.position.top = ui.originalPosition.top + ( __dy );
+				//
+				ui.position.left += __recoupLeft;
+				ui.position.top += __recoupTop;
+			},
 			start: function( event, ui ) {
+				$( this ).css( 'cursor', 'pointer' );
+				//resize bug fix ui drag
+				var left = parseInt( $( this ).css( 'left' ), 10 );
+				left = isNaN( left ) ? 0 : left;
+				var top = parseInt( $( this ).css( 'top' ), 10 );
+				top = isNaN( top ) ? 0 : top;
+				__recoupLeft = left - ui.position.left;
+				__recoupTop = top - ui.position.top;
 				var position = $(event.target).css("position");
 				if(position==="fixed"){
 					//Start d&d in background
@@ -130,6 +156,7 @@ VISH.Editor.Flashcard = (function(V,$,undefined){
 				}
 			},
 			stop: function(event, ui) {
+				$( this ).css( 'cursor', 'default' );			
 				//Chek if poi is inside background
 				var current_offset = $(event.target).offset();
 				var fc_offset = $(fc).offset();
@@ -189,6 +216,10 @@ VISH.Editor.Flashcard = (function(V,$,undefined){
 						$(event.target).attr("ddend","scrollbar");
 					});
 				}
+			},
+			create: function ( event, ui ) {
+				$( this ).attr( 'oriLeft', $( this ).css( 'left' ) );
+				$( this ).attr( 'oriTop', $( this ).css( 'top' ) );
 			}
 		});
 	};
