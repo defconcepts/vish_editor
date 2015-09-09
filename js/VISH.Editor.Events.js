@@ -41,10 +41,17 @@ VISH.Editor.Events = (function(V,$,undefined){
 			
 			$(document).on('keyup', '#presentation_details_input_title', V.Editor.Settings.onKeyUpOnTitle);
 			$(document).on('keyup', '#presentation_details_preview_addtitle_input', V.Editor.Settings.onKeyUpOnPreviewTitle);
-			$(document).on('click', '#pedagogical_clasification_button', V.Editor.Settings.onPedagogicalButtonClicked);
-			$(document).on('click', '#done_in_pedagogical', V.Editor.Settings.onDonePedagogicalButtonClicked);
+			$(document).on('click', '#metadata_clasification_button', V.Editor.Settings.onMetadataButtonClicked);
+			$(document).on('click', '#done_in_metadata', V.Editor.Settings.onDoneMetadataButtonClicked);
+			$(document).on('click', '.js_tabs_asettings', V.Editor.Settings.advancedTabs);
+			$(document).on('click', '#catalog_button', V.Editor.Settings.onCatalogButtonClicked);
+			$(document).on('click', '#catalog_done_button', V.Editor.Settings.onDoneCatalogButtonClicked);
+			$(document).on('change', '#attachment_file', V.Editor.Settings.onUploadFileAttachment);
+			$(document).on('click', '#upload_file_attachment', V.Editor.Settings.onUploadingFileAttachment);
+
 			$(document).on('click', '#fill_details_later_button', function(event){
 				event.preventDefault();
+				$("#catalog_content").hide();
 				$.fancybox.close();
 			});
 			$(document).on('change', '#tlt_hours, #tlt_minutes, #tlt_seconds', V.Editor.Settings.onTLTchange);
@@ -238,6 +245,7 @@ VISH.Editor.Events = (function(V,$,undefined){
 			$(document).on("click", "#quizSettingsDone", V.Editor.Quiz.onQuizSettingsDone);
 			$(document).on("click", "#exportQuizToIMSQTI", function(){ V.Editor.Quiz.onExportTo("QTI") });
 			$(document).on("click", "#exportQuizToMoodleXML", function(){ V.Editor.Quiz.onExportTo("MoodleXML") });
+			$(document).on("click", "#objectSettingsDone", V.Editor.Object.onObjectSettingsDone);
 			
 			//onbeforeunload event
 			window.onbeforeunload = _exitConfirmation;
@@ -338,9 +346,24 @@ VISH.Editor.Events = (function(V,$,undefined){
 			V.Tour.startTourWithId('help_in_settings_help', 'bottom');
 		});
 
-		//Help in pedagogical options settings	
-		$(document).on('click','#help_pedagogical_selection', function(){
-			V.Tour.startTourWithId('help_pedagogical_selection_help', 'bottom');
+		//Help in metadata options settings	
+		$(document).on('click','#help_metadata_selection', function(){
+			V.Tour.startTourWithId('help_metadata_selection_help', 'bottom');
+		});
+
+		//Help in metadata options settings	
+		$(document).on('click','#help-metadata-options-tab', function(){
+			V.Tour.startTourWithId('help_metadata_selection_help', 'bottom');
+		});
+
+		//Help in publication options settings	
+		$(document).on('click','#help-publication-tab', function(){
+			V.Tour.startTourWithId('help_publication_selection_help', 'bottom');
+		});
+
+		//Help in rte options settings	
+		$(document).on('click','#help-rte-tab', function(){
+			V.Tour.startTourWithId('help_rte_selection_help', 'bottom');
 		});
 
 		//Help inserting images [URL, Upload, ViSH, Flickr, LRE]
@@ -447,7 +470,7 @@ VISH.Editor.Events = (function(V,$,undefined){
 			"onStart"  : function(data) {
 				var clickedZoneId = $(data).attr("zone");
 				V.Editor.setCurrentArea($("#" + clickedZoneId));
-				V.Editor.Utils.loadTab('tab_video_youtube');
+				V.Editor.Utils.loadTab(V.Editor.Video.getDefaultTab());
 			}
 		});
 

@@ -27,10 +27,10 @@ VISH.Editor.Settings = (function(V,$,undefined){
 			max: 30,
 			values: [ V.Constant.AGE_RANGE_MIN, V.Constant.AGE_RANGE_MAX ],
 			slide: function( event, ui ) {
-				$( "#age_range" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+				_changeAgeRangeDisplayedValue(ui.values[0] + " - " + ui.values[1]);
 			}
 		});
-		$("#age_range").val(V.Constant.AGE_RANGE);
+		_changeAgeRangeDisplayedValue(V.Constant.AGE_RANGE);
 
 		$("#slider-difficulty").slider({
 			min: 0,
@@ -118,7 +118,9 @@ VISH.Editor.Settings = (function(V,$,undefined){
 
 		//Sliders are initialized in the init() method.
 		onTLTchange();
-
+		if(typeof V.Utils.getOptions().configuration.catalog === 'undefined' || V.Utils.getOptions().configuration.catalog.length == 0 ){
+			$('#catalog_button').hide();
+		}
 		//Check for enable continue button
 		_checkIfEnableContinueButton();
 	};
@@ -150,6 +152,14 @@ VISH.Editor.Settings = (function(V,$,undefined){
 			}
 		}
 
+		var catalog_tags = V.Utils.getOptions().configuration.catalog;
+		if(catalog_tags){
+			for(var i = 0; i<catalog_tags.length; i++){
+				$("#catalog_tags").append($("<option />").val(catalog_tags[i]).attr("i18n-key", "i."+ catalog_tags[i]).text(catalog_tags[i]))
+			}
+		}
+
+
 		//Contributors
 		if(typeof presentation.contributors == "object"){
 			_contributors = presentation.contributors;
@@ -165,11 +175,31 @@ VISH.Editor.Settings = (function(V,$,undefined){
 
 		//Tags: intialized on _onInitialTagsReceived method.
 
+		//License
+		var validLicenseValues = [];
+		$("#presentation_details_license_select option").each(function(index,optionTag){
+			validLicenseValues.push($(optionTag).attr("value"));
+		});
+		var hasLicense = ((typeof presentation.license == "object")&&(typeof presentation.license.key == "string")&&(validLicenseValues.indexOf(presentation.license.key)!=-1));
+		if(hasLicense){
+			$("#presentation_details_license_select").val(presentation.license.key);
+		}
+
+		//Block license if resource has been already published
+		if(V.Editor.hasBeenPublished()){
+			if(hasLicense){
+				var hasPrivateLicense = (hasLicense && presentation.license.key === "private");
+				if(!hasPrivateLicense){
+					$("#presentation_details_license_select").attr("disabled","disabled");
+				}
+			}
+		}
+
 		//Themes
 		selectTheme(V.Editor.Themes.getCurrentTheme().number);
 
-		//Pedagogical
-		
+		//Metadata
+
 		if(presentation.language){
 			$("#language_tag").val(presentation.language);
 		}
@@ -181,9 +211,9 @@ VISH.Editor.Settings = (function(V,$,undefined){
 			var start_range = presentation.age_range.substring(0, presentation.age_range.indexOf("-")-1);
 			var end_range = presentation.age_range.substring(presentation.age_range.indexOf("-")+2);
 			$("#slider-age" ).slider( "values", [start_range, end_range] );
-			$("#age_range").val(presentation.age_range);
+			_changeAgeRangeDisplayedValue(presentation.age_range);
 		} else {
-			$("#age_range").val(V.Constant.AGE_RANGE);
+			_changeAgeRangeDisplayedValue(V.Constant.AGE_RANGE);
 		}
 
 		if(presentation.difficulty){
@@ -199,7 +229,7 @@ VISH.Editor.Settings = (function(V,$,undefined){
 		}
 
 		if(presentation.TLT){
-			var durations = VISH.Editor.Utils.iso8601Parser.getDurationPerUnit(presentation.TLT);
+			var durations = V.Utils.iso8601Parser.getDurationFromISOPerUnit(presentation.TLT);
 			$("#tlt_hours").val(durations[4].toString());
 			$("#tlt_minutes").val(durations[5].toString());
 			$("#tlt_seconds").val(durations[6].toString());
@@ -209,9 +239,60 @@ VISH.Editor.Settings = (function(V,$,undefined){
 			$("#subject_tag").val(presentation.subject);
 		}
 		
+		//Advanced Settings
 		if(presentation.educational_objectives){
 			$("#educational_objectives_textarea").val(presentation.educational_objectives);
-		}		
+		}
+
+		//to make checked by the fault and read settings
+		if(presentation.allow_clone == "false"){
+			$("#allow_clone").prop("checked", false);
+		} else {
+			$("#allow_clone").prop('checked', true);
+		}
+
+		if( presentation.license != undefined && (presentation.license.key == "cc-by-nd" || presentation.license.key == "cc-by-nc-nd")){
+			$("#allow_clone").prop("checked", false);
+			$("#allow_clone").prop("disabled", true);
+		}
+
+		if(presentation.allow_comment == "false"){
+			$("#allow_comment").prop("checked", false);
+		} else {
+			$("#allow_comment").prop('checked', true);
+		}
+
+		if(presentation.allow_download == "false"){
+			$("#allow_download").prop("checked", false);
+		} else {
+			$("#allow_download").prop('checked', true);
+		}
+
+		if(presentation.allow_following_rte == "false"){
+			$("#allow_following_rte").prop("checked", false);
+		} else {
+			$("#allow_following_rte").prop('checked', true);
+		}
+
+		if(presentation.attachment_file_name != undefined && $('#upload_file_attachment').prop('disabled')){
+			document.getElementById("description_attachment").value = presentation.attachment_file_name;
+			$("#upload_icon_success").show();
+			$('#upload_file_attachment').prop('disabled', true);
+		}
+
+		if (presentation.title == undefined){
+			$('.attachmentFileUpload').prop('disabled', true);
+			$('#attachment_file').prop('disabled', true);
+		} else {
+			$('.attachmentFileUpload').removeAttr('disabled');
+		}
+
+		// Fix catalog position up to button size
+		if (VISH.I18n.getLanguage() == "en"){
+			$("#catalog_button").css("margin-left","244px");
+			$("#upload_file_attachment").css("margin-left","15px");
+		}
+
 	};
 
 	var _onThemeImagesLoaded = function(){
@@ -280,26 +361,25 @@ VISH.Editor.Settings = (function(V,$,undefined){
 		$("#tagBoxIntro").html($("#tagBoxIntro").attr("HTMLcontent"));
 
 		var tagList = $("#tagBoxIntro .tagList");
-		var draftPresentation = V.Editor.getDraftPresentation();
 
 		if ($(tagList).children().length == 0){
-			if(!draftPresentation){
-				// //Insert the two first tags. //DEPRECATED
-				// $.each(data, function(index, tag) {
-				// 	if(index==2){
-				// 		return false; //break the bucle
-				// 	}
-				// 	$(tagList).append("<li>" + tag + "</li>")
-				// });
-			} else {
-				if(draftPresentation.tags){
-					//Insert draftPresentation tags
-					$.each(draftPresentation.tags, function(index, tag) {
-						$(tagList).append("<li>" + tag + "</li>");
-					});
-				}
+			var options = V.Utils.getOptions();
+			if((options)&&(options["extra_tags"] instanceof Array)){
+				$(options["extra_tags"]).each(function(index,tag){
+					$(tagList).append("<li>" + tag + "</li>");
+				});
 			}
-			$(tagList).tagit({tagSource:data, sortable:true, maxLength:20, maxTags:8 , 
+
+			var draftPresentation = V.Editor.getDraftPresentation();
+			if(draftPresentation && draftPresentation.tags){
+				//Insert draftPresentation tags
+				$.each(draftPresentation.tags, function(index,tag){
+					$(tagList).append("<li>" + tag + "</li>");
+				});
+			}
+
+			var config = V.Configuration.getConfiguration();
+			$(tagList).tagit({tagSource:data, sortable:true, maxLength:config.tagsSettings.maxLength, maxTags:config.tagsSettings.maxTags, triggerKeys:config.tagsSettings.triggerKeys, 
 			watermarkAllowMessage: V.I18n.getTrans("i.AddTags"), watermarkDenyMessage: V.I18n.getTrans("i.limitReached")});
 		}
 	};
@@ -360,6 +440,13 @@ VISH.Editor.Settings = (function(V,$,undefined){
 		}
 	};
 
+	var _changeAgeRangeDisplayedValue = function(ageRange){
+		if(ageRange==="0 - 0"){
+			ageRange = V.I18n.getTrans("i.unspecified");
+		}
+		$("#age_range").val(ageRange);
+	};
+
 	var onTLTchange = function(event){
 		if((event)&&(event.keyCode===13)){
 			$(event.target).blur();
@@ -418,7 +505,7 @@ VISH.Editor.Settings = (function(V,$,undefined){
 		if($(event.target).hasClass("buttonDisabledOnSettings")){
 			return;
 		}
-
+		$("#catalog_content").hide();
 		$.fancybox.close();
 	};
 
@@ -464,6 +551,13 @@ VISH.Editor.Settings = (function(V,$,undefined){
 			settings.tags = tags;
 		}
 
+		//License
+		var licenseName = $("#presentation_details_license_select").find(":selected").text();
+		var licenseKey = $("#presentation_details_license_select").val();
+		if((typeof licenseName == "string")&&(licenseKey)){
+			settings.license = {name: licenseName, key: licenseKey};
+		}
+		
 		var themeNumber = V.Editor.Themes.getCurrentTheme().number;
 		if(typeof  themeNumber == "string"){
 			settings.theme = "theme" + themeNumber;
@@ -478,7 +572,7 @@ VISH.Editor.Settings = (function(V,$,undefined){
 			settings.animation = V.Constant.Animations.Default;
 		}
 
-		//Pedagogical fields
+		//Metadata fields
 		var language = $("#language_tag").val();
 		if(typeof language == "string"){
 			settings.language = language;
@@ -490,7 +584,7 @@ VISH.Editor.Settings = (function(V,$,undefined){
 		}
 
 		var age_range = $("#age_range").val();
-		if(typeof age_range == "string"){
+		if((typeof age_range == "string")&&(age_range != V.I18n.getTrans("i.unspecified"))){
 			settings.age_range = age_range;
 		}
 		
@@ -527,6 +621,42 @@ VISH.Editor.Settings = (function(V,$,undefined){
 		if((typeof educational_objectives == "string")&&(educational_objectives.trim()!="")){
 			settings.educational_objectives = educational_objectives;
 		}
+
+		//Publication settings
+		var allow_clone = $("#allow_clone").is(':checked');
+		if(typeof allow_clone == "boolean"){
+			settings.allow_clone = allow_clone.toString();
+		}
+
+		if( licenseKey == "cc-by-nd" || licenseKey == "cc-by-nc-nd"){
+			settings.allow_clone = "false";
+		}
+
+
+		var allow_comment = $("#allow_comment").is(':checked');
+			if(typeof allow_comment == "boolean"){
+			settings.allow_comment = allow_comment.toString();
+		}
+
+		var allow_download = $("#allow_download").is(':checked');
+		if(typeof allow_download == "boolean"){
+			settings.allow_download = allow_download.toString();
+		}
+
+		var allow_following_rte = $("#allow_following_rte").is(':checked');
+		if(typeof allow_following_rte == "boolean"){
+			settings.allow_following_rte = allow_following_rte.toString();
+		}
+		
+		var attachment_file_name = V.Editor.Utils.filterFilePath(document.getElementById("description_attachment").value);
+		if(attachment_file_name != "" && $('#upload_file_attachment').prop('disabled')){
+			settings.attachment_file_name = attachment_file_name;
+		}
+		
+		//callbacks
+		$('.attachmentFileUpload').prop('disabled', false);
+		$('#attachment_file').prop('disabled', false);
+		$('.attachmentFileUpload').removeAttr('disabled');
 
 		return settings;
 	};
@@ -603,23 +733,150 @@ VISH.Editor.Settings = (function(V,$,undefined){
 	};
 
 	/**
-	 * function called when the user clicks on the pedagogical options button
+	 * function called when navigating into metadata options to manage tabs
 	 */
-	 var onPedagogicalButtonClicked = function(event){
+	 var advancedTabs = function(event){
 	 	event.preventDefault();
+	 	if($(this).hasClass != true){
+	 		$(this).closest('ul').find('.fancy_selected').removeClass('fancy_selected');
+	 		$(this).addClass("fancy_selected");
+		 	$("#metadata_options_fields").children('.active').removeClass('active').hide();
+		 	var attr = "#" + $(this).attr("tab");
+		 	$(attr).addClass("active").show();
+
+		 	//help behaviour
+		 	$($(".help_in_settings")[1]).attr("id", "help-" + $(this).attr("tab"));
+	 	}
+	 };
+
+	/**
+	 * function called when the user clicks on the metadata options button
+	 */
+	 var onMetadataButtonClicked = function(event){
+	 	event.preventDefault();
+	 	$("#catalog_content").hide();
 	 	$("#presentation_details_fields").slideUp();
-	 	$("#pedagogical_options_fields").slideDown();
+	 	$("#metadata_options_fields").slideDown();
+	 	if ($("#advanced_tabs .fancy_selected") != undefined ){ 
+	 		$(".help_in_settings").attr("id", "help-" + $("#advanced_tabs .fancy_selected").attr("tab"));
+	 	}
 	 };
 
 	 /**
-	 * function called when the user clicks on the done button in the pedagogical options panel
+	 * function called when the user clicks on the done button in the metadata options panel
 	 */
-	 var onDonePedagogicalButtonClicked = function(event){
+	 var onDoneMetadataButtonClicked = function(event){
 	 	event.preventDefault();
-	 	$("#pedagogical_options_fields").slideUp();
+	 	$("#metadata_options_fields").slideUp();
 	 	$("#presentation_details_fields").slideDown();
+	 	$(".help_in_settings").attr("id","help_in_settings"); 
 	 };
 
+	 /**
+	 * function called when the user clicks on the metadata options button
+	 */
+	 var onCatalogButtonClicked = function(event){
+	 	event.preventDefault();
+	 	$("#catalog_content").fadeIn();
+	 };
+
+
+	 /**
+	 * function called when the user clicks on the done button in the metadata options panel
+	 */
+	 var onDoneCatalogButtonClicked = function(event){
+	 	event.preventDefault();
+	 	
+	 	var catalog_tags = $("#catalog_tags").find(":selected");
+	 	if (catalog_tags.length > 0){
+ 			for( i = 0; i < catalog_tags.length; i ++){
+ 				$("#tagBoxIntro .tagList").tagit('add', catalog_tags[i].value);
+ 			}
+ 			$("#catalog_tags :selected").removeAttr("selected");
+	 	}
+
+	 	$("#catalog_content").fadeOut();
+
+	 	
+	 };
+
+	 /**
+	 *	Function to beautify upload behaviour
+	 */
+	 var onUploadFileAttachment = function(event){
+	 	var file_name = document.getElementById("attachment_file").value;
+	 	var id;
+	 	try{
+	 		var id = V.Editor.getDraftPresentation()["vishMetadata"]["id"];
+	 	} catch(e){
+	 	
+	 		id = "";
+	 	}
+	 	
+	 	if (id == "" && window.parent.document.location.pathname.match(/excursions.(\d+)/) != null){
+		 	id = window.parent.document.location.pathname.match(/excursions.(\d+)/)[1];
+	 	}
+
+	 	if( file_name != "" && id != "" ){
+    		document.getElementById("description_attachment").value = V.Editor.Utils.filterFilePath(file_name);
+	 		$('#upload_file_attachment').prop('disabled', false);
+	 		$("#upload_icon_success").hide();
+	 	} else {
+	 		$("#upload_icon_success").hide();
+	 		document.getElementById("attachment_file").value = "";
+	 		V.Editor.Utils.showErrorDialog(V.I18n.getTrans("i.uploadHasToSaveFirst"));
+	 	}
+	 };
+
+	 /**
+	 *	Function to handle uploading an attachment behaviour
+	 **/
+	 var onUploadingFileAttachment = function(event){
+	 	var file_name = document.getElementById("attachment_file").value;
+	 	var id;
+	 	try{
+	 		var id = V.Editor.getDraftPresentation()["vishMetadata"]["id"];
+	 	} catch(e){
+	 	
+	 		id = "";
+	 	}
+	 	
+	 	if (id == "" && window.parent.document.location.pathname.match(/excursions.(\d+)/) != null){
+		 	var id = window.parent.document.location.pathname.match(/excursions.(\d+)/)[1];
+	 	}
+	 	if(file_name != "" && id != ""){
+		 	var attachment_url = "/excursions/"+ id + "/upload_attachment";
+		 	$("#attachment_file_form").attr("action", attachment_url);
+		 	$("#attachment_author").val(V.User.getId());
+		 	$("#attachment_aut_token").val(V.User.getToken());
+		 	$("#attachment_file_form").ajaxForm({ 
+		 		success: function(responseText, statusText, xhr, form) {
+		 			if(responseText.status == "bad_request" && responseText.message == "bad_size"){
+		 				V.Editor.Utils.showErrorDialog(V.I18n.getTrans("i.uploadErrorTooBig"));
+		 				$('#upload_file_attachment').prop('disabled', true);
+		 			}else if(responseText.status == "bad_request" && responseText.message == "wrong_params"){
+		 				V.Editor.Utils.showErrorDialog(V.I18n.getTrans("i.uploadErrorWrongServer"));
+		 				$('#upload_file_attachment').prop('disabled', true);
+		 			} else if (responseText.status == "ok" && responseText.message == "success") {
+		 				$("#upload_icon_success").show();
+		 				$('#upload_file_attachment').prop('disabled', true);
+		 				V.Editor.Tools.save();
+
+					}
+				},
+				error: function(error){
+					V.Editor.Utils.showErrorDialog(V.I18n.getTrans("i.uploadErrorWrongServer"));
+				}
+			}); 
+		} else {
+			if(id == ""){
+				event.preventDefault();
+				V.Editor.Utils.showErrorDialog(V.I18n.getTrans("i.uploadHasToSaveFirst"));
+			} else {
+				V.Editor.Utils.showErrorDialog(V.I18n.getTrans("i.uploadErrorCantReach"));
+			}
+		}
+	 };
 
 	 /*
 	  * Contributors Management
@@ -638,16 +895,21 @@ VISH.Editor.Settings = (function(V,$,undefined){
 		loadPresentationSettings				: loadPresentationSettings,
 		onChangeThumbnailClicked				: onChangeThumbnailClicked,
 		onThumbnailSelected						: onThumbnailSelected,
+		onUploadFileAttachment					: onUploadFileAttachment,
+		onUploadingFileAttachment				: onUploadingFileAttachment,
 		selectTheme								: selectTheme,
 		onKeyUpOnTitle							: onKeyUpOnTitle,
 		onKeyUpOnPreviewTitle					: onKeyUpOnPreviewTitle,
 		onTLTchange								: onTLTchange,
+		advancedTabs							: advancedTabs,
 		checkMandatoryFields					: checkMandatoryFields,
 		onSavePresentationDetailsButtonClicked	: onSavePresentationDetailsButtonClicked,
 		getTags									: getTags,
 		saveSettings							: saveSettings,
-		onPedagogicalButtonClicked   			: onPedagogicalButtonClicked,
-		onDonePedagogicalButtonClicked 			: onDonePedagogicalButtonClicked,
+		onMetadataButtonClicked   				: onMetadataButtonClicked,
+		onDoneMetadataButtonClicked 			: onDoneMetadataButtonClicked,
+		onCatalogButtonClicked 					: onCatalogButtonClicked,
+		onDoneCatalogButtonClicked				: onDoneCatalogButtonClicked,
 		selectAnimation 						: selectAnimation,
 		addContributor							: addContributor
 	};

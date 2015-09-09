@@ -26,7 +26,7 @@ VISH.Editor.Video = (function(V,$,undefined){
 
 	var onLoadTab = function(tab){
 		//Load Video from URL
-		$("#tab_video_from_url_content").find("input").val("")
+		$("#tab_video_from_url_content").find("input").val("");
 		V.Editor.Object.resetPreview("tab_video_from_url_content");
 	};
 	
@@ -59,13 +59,22 @@ VISH.Editor.Video = (function(V,$,undefined){
 		}
 		contentAddMode = mode;
 	};
+
+	var getDefaultTab = function(){
+		var defaultTab = 'tab_video_from_url';
+		if(V.Configuration.getConfiguration()["Youtube"]){
+			defaultTab = 'tab_video_youtube';
+		}
+		return defaultTab;
+	};
 			
 	return {
 		init				: init,
 		onLoadTab 			: onLoadTab,
 		addContent 			: addContent,
 		getAddContentMode	: getAddContentMode,
-		setAddContentMode	: setAddContentMode
+		setAddContentMode	: setAddContentMode,
+		getDefaultTab		: getDefaultTab
 	};
 
 }) (VISH, jQuery);

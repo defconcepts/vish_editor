@@ -52,6 +52,10 @@ var getOptions = function(){
 			rootURL: "http://localhost:3000/quiz_sessions/"
 		};
 
+		//WAPP Token API
+		configuration["WAPP_TOKEN_API"] = {
+			rootURL: "http://localhost:3000/apis/wapp_token"
+		};
 
 		/////////////////////
 		// Sources enabled
@@ -60,12 +64,14 @@ var getOptions = function(){
 		configuration["ViSH_instances"] = ["http://localhost:3000"];
 		configuration["Flickr"] = true;
 		configuration["Youtube"] = true;
+		configuration["YoutubeAPIKEY"] = 'YoutubeAPIKey';
 		configuration["Vimeo"] = false;
 		configuration["LRE"] = true;
 		configuration["LRE_path"] = "http://localhost:3000/lre/search";
 		configuration["SoundCloud"] = true;
 		configuration["SoundCloudAPIKEY"] = 'SoundcloudAPIKey';
-
+		configuration["catalog"] = ["Art", "Astronomy", "Biology", "Chemistry", "Citizenship", "Classical Languages", "Cross Curricular Education", "Computer Science", "General Culture", "Economics", "Education", "Electronics", "Environmental Education", "Ethics", "Foreign Languages", "Geography", "Geology", "Health Education", "History", "Home Economics", "Literature", "Law", "Mathematics", "Music", "Natural Sciences", "Philosophy", "Physical Education", "Physics", "Politics", "Psychology", "Religion", "Social Sciences", "Software Engineering", "Technology", "Telecommunications"];
+		
 		/////////////////////
 		// Features enabled
 		/////////////////////
@@ -90,7 +96,7 @@ var getOptions = function(){
 		// Behaviour customization
 		/////////////////////
 		configuration["presentationSettings"] = true;
-
+		configuration["tagsSettings"] = {maxLength: 20, maxTags: 8, triggerKeys: ['enter', 'space', 'comma', 'tab']};
 
 		options["configuration"] = configuration;
 

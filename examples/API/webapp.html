@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ViSH Viewer: API Testing</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<script type="text/javascript" src="../../js/VISH.IframeAPI.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body>
+	<script type="text/javascript">
+
+		window.onload = function(){
+			_loadEvents();
+
+			VISH.IframeAPI.init(
+				{
+					wapp: true,
+					tracking: true,
+					callback: _onConnect
+				}
+			);
+		};
+
+
+		//APP code
+
+		var _onConnect = function(origin){
+			// console.log("WAPP EXAMPLE: " + "Communication stablished with " + origin);
+
+			VISH.IframeAPI.getUser(function(user){
+				if(user.logged){
+					document.getElementById("username").innerHTML = "Hola " + user.username;
+					VISH.IframeAPI.getAuthToken(function(token){
+						// console.log("WAPP EXAMPLE: " + "Token es: " + token);
+					});
+				}
+			});
+		};
+
+		var _afterSetScore = function(score){
+			alert("Has sacado un " + score);
+			console.log("WAPP EXAMPLE: " + "Score fijado a: " + score);
+			console.log("WAPP EXAMPLE: " + score);
+		};
+
+		var _loadEvents = function(){
+			$("#responder").click(function(){
+				if(VISH.IframeAPI.isConnected()){
+					if($("#quiz input[type='radio'][value='Madrid']").is(":checked")){
+						VISH.IframeAPI.setScore(100,_afterSetScore);
+						VISH.IframeAPI.setProgress(100,function(progress){
+							console.log("WAPP EXAMPLE: " + "Progress fijado a: " + progress);
+						});
+						VISH.IframeAPI.setSuccessStatus("passed",function(status){
+							console.log("WAPP EXAMPLE: " + "Success status fijado a: " + status);
+						});
+						VISH.IframeAPI.setCompletionStatus("completed",function(status){
+							console.log("WAPP EXAMPLE: " + "Completion status fijado a: " + status);
+						});
+					} else {
+						VISH.IframeAPI.setScore(0,_afterSetScore);
+						VISH.IframeAPI.setProgress(100,function(progress){
+							console.log("WAPP EXAMPLE: " + "Progress fijado a: " + progress);
+						});
+						VISH.IframeAPI.setSuccessStatus("failed",function(status){
+							console.log("WAPP EXAMPLE: " + "Success status fijado a: " + status);
+						});
+						VISH.IframeAPI.setCompletionStatus("completed",function(status){
+							console.log("WAPP EXAMPLE: " + "Completion status fijado a: " + status);
+						});
+					}
+				}
+			});
+		};
+	</script>
+
+	<h1> ViSH Editor WebAPP Example </h1>
+	<p id="username"></p>
+	<br/>
+	<div id="quiz">
+		<p>¿Cúal es la capital de España?</p>
+		<input type="radio" value="Barcelona">Barcelona</input>
+		<input type="radio" value="Madrid">Madrid</input>
+		<input type="radio" value="Valencia">Valencia</input>
+		<br/>
+		<input id="responder" type="button" value="Responder"></input>
+	</div>
+</body>
+</html>

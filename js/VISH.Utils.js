@@ -57,33 +57,6 @@ VISH.Utils = (function(V,undefined){
 			};
 		// };
 
-		if(!Array.prototype.filter){
-			Array.prototype.filter = function(fun /*, thisp */){
-				"use strict";
-
-				if (this == null)
-					throw new TypeError();
-
-				var t = Object(this);
-				var len = t.length >>> 0;
-				if (typeof fun != "function")
-					throw new TypeError();
-
-				var res = [];
-				var thisp = arguments[1];
-				for (var i = 0; i < len; i++)
-				{
-					if (i in t)
-					{
-						var val = t[i]; // in case fun mutates this
-						if (fun.call(thisp, val, i, t))
-							res.push(val);
-					}
-				}
-				return res;
-			};
-		};
-
 		//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
 		if(!Array.prototype.map){
 			Array.prototype.map = function(fun /*, thisArg */){
@@ -301,6 +274,9 @@ VISH.Utils = (function(V,undefined){
 			// return null;
 		}
 
+		//Fix license
+		presentation = _fixLicense(presentation);
+
 		return presentation;
 	};
 
@@ -344,6 +320,19 @@ VISH.Utils = (function(V,undefined){
 		}
 
 		return presentation;
+    };
+
+    var _fixLicense = function(presentation){
+		if(typeof presentation.license != "object"){
+			var options = V.Utils.getOptions();
+			var isDraft = ((["string","boolean"].indexOf(typeof options.draft) === -1) || (options.draft.toString()==="true"));
+			if(!isDraft){
+				var licenseKey = "cc-by-nc";
+				presentation.license = {name: V.I18n.getTrans("i.License_" + licenseKey), key: licenseKey};
+			}
+		}
+
+    	return presentation;
     };
 
 	/*

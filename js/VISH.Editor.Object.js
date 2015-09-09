@@ -4,7 +4,10 @@ VISH.Editor.Object = (function(V,$,undefined){
 	var uploadDivId = "tab_object_upload_content";
 	var urlDivId = "tab_object_from_url_content";
 	var urlInputId = "object_embed_code";
+
+	var _hiddenLinkToInitObjectSettings;
 		
+
 	var init = function(){
 		V.Editor.Object.LRE.init();
 		V.Editor.Object.Repository.init();
@@ -90,7 +93,46 @@ VISH.Editor.Object = (function(V,$,undefined){
 				V.Debugging.log("Upload error");
 				V.Debugging.log(error);
 			}
-		});	
+		});
+
+		//Object Settings
+		_hiddenLinkToInitObjectSettings = $('<a href="#objectSettings_fancybox" style="display:none"></a>');
+		$(_hiddenLinkToInitObjectSettings).fancybox({
+			'autoDimensions' : false,
+			'height': 360,
+			'width': 400,
+			'scrolling': 'no',
+			'showCloseButton': false,
+			'padding' : 0,
+			"onStart"  : function(data){
+				_onStartObjectSettingsFancybox();
+			},
+			"onComplete" : function(data){
+			},
+			"onClosed"  : function(data){
+			}
+		});
+
+		//Settings panel events
+		$("#objectSettings_fancybox").find("input[type='checkbox'][name='wappAPI']").change(function(){
+			var wappScoreCheckbox = $("#objectSettings_fancybox").find("input[type='checkbox'][name='wappScore']");
+			var wappScorePointsDOM = $("#objectSettings_fancybox").find("select[name='wappScorePoints']");
+			if(!$(this).is(':checked')){
+				V.Editor.Utils.enableElementSettingsField([wappScoreCheckbox,wappScorePointsDOM],false);
+			} else {
+				V.Editor.Utils.enableElementSettingsField([wappScoreCheckbox],true);
+			}
+		});
+
+		$("#objectSettings_fancybox").find("input[type='checkbox'][name='wappScore']").change(function(){
+			var wappScorePointsDOM = $("#objectSettings_fancybox").find("select[name='wappScorePoints']");
+			if(!$(this).is(':checked')){
+				V.Editor.Utils.enableElementSettingsField([wappScorePointsDOM],false);
+			} else {
+				V.Editor.Utils.enableElementSettingsField([wappScorePointsDOM],true);
+				$(wappScorePointsDOM).val(10);
+			}
+		});
 	};
 	
 	var onLoadTab = function(tab){
@@ -138,9 +180,9 @@ VISH.Editor.Object = (function(V,$,undefined){
    
 	var _onTagsReceived = function(data){
 		var tagList = $("#" + uploadDivId + " .tagList");
-
 		if ($(tagList).children().length == 0){
-			$(tagList).tagit({tagSource:data, sortable:true, maxLength:20, maxTags:8 , 
+			var config = V.Configuration.getConfiguration();
+			$(tagList).tagit({tagSource:data, sortable:true, maxLength:config.tagsSettings.maxLength, maxTags:config.tagsSettings.maxTags, triggerKeys:config.tagsSettings.triggerKeys, 
 			watermarkAllowMessage: V.I18n.getTrans("i.AddTags"), watermarkDenyMessage: V.I18n.getTrans("i.limitReached")});
 		}
 	};
@@ -572,6 +614,140 @@ VISH.Editor.Object = (function(V,$,undefined){
 			V.Editor.Object.Webapp.afterDraw(wrapperTag);
 		}
 	};
+
+	/////////////////
+	// Object Settings
+	/////////////////
+
+	var showObjectSettings = function(){
+		$(_hiddenLinkToInitObjectSettings).trigger("click");
+	};
+
+	var _onStartObjectSettingsFancybox = function(){
+		var oSF = $("#objectSettings_fancybox");
+
+		//Get object
+		var area = V.Editor.getCurrentArea();
+		var object = $(area).find("div.object_wrapper").children().first();
+		var objectInfo = V.Object.getObjectInfo(object);
+
+		$(oSF).find("input[type='hidden'][name='elId']").val($(area).attr("id"));
+		
+		//Load Settings
+		var oSettings = {};
+		var unloadObject = true;
+		
+		try {
+			oSettings = JSON.parse($(area).attr("elSettings"));
+		} catch(e){}
+
+		if(typeof oSettings.unloadObject != "undefined"){
+			unloadObject = oSettings.unloadObject;
+		}
+
+		if(objectInfo.type===V.Constant.MEDIA.FLASH){
+			//Unload object should be true for flash files.
+			unloadObject = true;
+		}
+
+		//WAPPs
+		var showWAPPSettings = (objectInfo.type===V.Constant.MEDIA.WEB_APP);
+		if(showWAPPSettings){
+			var wappAPI = oSettings.wappAPI_supported;
+			var wappScore = false;
+			var wappScorePoints = 0;
+
+			if(typeof oSettings.wappAPI != "undefined"){
+				wappAPI = oSettings.wappAPI;
+			}
+			if(typeof oSettings.wappScore != "undefined"){
+				wappScore = oSettings.wappScore && wappAPI;
+			}
+			
+			if((typeof oSettings.wappScorePoints != "undefined")&&(oSettings.wappScore===true)){
+				wappScorePoints = oSettings.wappScorePoints;
+			} else {
+				if(wappScore){
+					wappScorePoints = 10;
+				}
+			}
+		}
+
+		//Fill and reset form
+
+		//Unload object
+		var unloadObjectCheckbox = $(oSF).find("input[type='checkbox'][name='unloadObject']");
+		$(unloadObjectCheckbox).prop('checked', unloadObject);
+
+		if(objectInfo.type===V.Constant.MEDIA.FLASH){
+			V.Editor.Utils.enableElementSettingsField(unloadObjectCheckbox,false);
+		} else {
+			V.Editor.Utils.enableElementSettingsField(unloadObjectCheckbox,true);
+		}
+
+		if(showWAPPSettings){
+			$(oSF).find("div.wapp_settings").show();
+
+			var wappAPICheckbox = $(oSF).find("input[type='checkbox'][name='wappAPI']");
+			$(wappAPICheckbox).prop('checked', wappAPI);
+
+			var wappScoreCheckbox = $(oSF).find("input[type='checkbox'][name='wappScore']");
+			$(wappScoreCheckbox).prop('checked', wappScore);
+
+			var wappScorePointsDOM = $(oSF).find("select[name='wappScorePoints']");
+			$(wappScorePointsDOM).val(wappScorePoints);
+
+			if(oSettings.wappAPI_supported!==true){
+				V.Editor.Utils.enableElementSettingsField([wappAPICheckbox,wappScoreCheckbox,wappScorePointsDOM],false);
+			} else {
+				V.Editor.Utils.enableElementSettingsField([wappAPICheckbox,wappScoreCheckbox,wappScorePointsDOM],true);
+			}
+
+		} else {
+			$(oSF).find("div.wapp_settings").hide();
+		}
+	};
+
+	var onObjectSettingsDone = function(){
+		var oSF = $("#objectSettings_fancybox");
+
+		//Get area and object
+		var areaId = $(oSF).find("input[type='hidden'][name='elId']").val();
+		var area = $("#"+areaId);
+		var object = $(area).find("div.object_wrapper").children().first();
+		var objectInfo = V.Object.getObjectInfo(object);
+
+		//Get previous settings
+		var oSettings = {};
+		try {
+			oSettings = JSON.parse($(area).attr("elsettings"));
+		} catch(e) {}
+		
+		//Get new settings
+		oSettings.unloadObject = $(oSF).find("input[type='checkbox'][name='unloadObject']").is(":checked");
+
+		if(objectInfo.type===V.Constant.MEDIA.WEB_APP){
+			oSettings.wappAPI = $(oSF).find("input[type='checkbox'][name='wappAPI']").is(":checked");
+			oSettings.wappScore = (oSettings.wappAPI && $(oSF).find("input[type='checkbox'][name='wappScore']").is(":checked"));
+			
+			var wappScorePointsDOM = $(oSF).find("select[name='wappScorePoints']");
+			if((oSettings.wappScore)&&(!$(wappScorePointsDOM).is(":disabled"))){
+				oSettings.wappScorePoints = $(wappScorePointsDOM).val();
+			} else {
+				delete oSettings.wappScorePoints;
+			}
+		} else {
+			delete oSettings.wappAPI;
+			delete oSettings.wappScore;
+			delete oSettings.wappScorePoints;
+		}
+
+		//Save Settings
+		var oSSerialized = JSON.stringify(oSettings);
+		$(area).attr("elSettings",oSSerialized);
+
+		$.fancybox.close();
+	};
 	
 	
 	return {
@@ -584,7 +760,9 @@ VISH.Editor.Object = (function(V,$,undefined){
 		drawPreview 					: drawPreview,
 		resetPreview 					: resetPreview,
 		drawPreviewElement				: drawPreviewElement,
-		drawPreviewObject				: drawPreviewObject
+		drawPreviewObject				: drawPreviewObject,
+		showObjectSettings				: showObjectSettings,
+		onObjectSettingsDone			: onObjectSettingsDone
 	};
 
 }) (VISH, jQuery);

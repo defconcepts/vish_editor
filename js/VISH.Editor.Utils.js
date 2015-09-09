@@ -79,6 +79,12 @@ VISH.Editor.Utils = (function(V,$,undefined){
 		});
 	};
 
+	var refreshHTML5EVideo = function(slide){
+		//if HTML5 video, redraw balls, because onloadeddata event is not fired again
+		if($(slide).attr("type")=="enrichedvideo" && $(slide).find("video[videotype=HTML5_VIDEO]")){
+			V.Editor.EVideo.onHTML5VideoReady($(slide).find(".evideoBody video")[0]);
+		}
+	}
 
 	/* Generate table for carrousels */
 	var generateTable = function(options){
@@ -333,6 +339,8 @@ VISH.Editor.Utils = (function(V,$,undefined){
 	/// Fancy Box Functions
 	/////////////////////////
 
+	var loadTabTimer;
+
 	/**
 	 * Function to load a tab and its content in the fancybox
 	 * also changes the help button to show the correct help
@@ -349,9 +357,9 @@ VISH.Editor.Utils = (function(V,$,undefined){
 		//select the correct one
 		$("#" + tab_id).addClass("fancy_selected");
 		//hide previous help button
-		$(".help_in_fancybox").hide();
+		$(".help_in_fancybox").not("#"+ tab_id + "_help").hide();
 
-		//Submodule callbacks	
+		//Submodule callbacks
 		switch (tab_id) {
 			case "tab_presentations_repo":
 				V.Editor.Presentation.Repository.beforeLoadTab();
@@ -393,13 +401,22 @@ VISH.Editor.Utils = (function(V,$,undefined){
 			case "tab_live_resource":
 				V.Editor.Object.Live.beforeLoadTab();
 				break;
-				break;
 			default:
 				break;
 		}
 
 		//show correct one
 		$("#"+ tab_id + "_help").show();
+
+		//Fix occasionally help img bug on Google Chrome
+		if(typeof loadTabTimer != "undefined"){
+			clearTimeout(loadTabTimer);
+		}
+		loadTabTimer = setTimeout(function(){
+			if($("#"+ tab_id + "_help").length > 0 && !$("#"+ tab_id + "_help").is(":visible") && $("#"+ tab_id + "_content").is(":visible")){
+				$("#"+ tab_id + "_help").hide().show(1);
+			}
+		},0);
 
 		//Submodule callbacks	
 		switch (tab_id) {
@@ -497,11 +514,38 @@ VISH.Editor.Utils = (function(V,$,undefined){
 		V.Utils.showDialog(options);
 	};
 
+	var enableElementSettingsField = function(element,enable){
+		if(element instanceof Array){
+			for(var i=0; i<element.length; i++){
+				enableElementSettingsField(element[i],enable);
+			}
+			return;
+		}
+
+		if(enable){
+			$(element).parent().removeClass("disableSettingsField");
+			$(element).removeAttr('disabled');
+		} else {
+			if ($(element).is("input")){
+				if ($(element).attr("type")==="checkbox"){
+					var defaultCheckboxValue = ($(element).attr("defaultvalue")==="true") ? true : false;
+					$(element).prop('checked', defaultCheckboxValue);
+				}
+			} else if ($(element).is("select")){
+				var defaultSelectValue = $(element).find("option[selected='selected']").val();
+				$(element).val(defaultSelectValue);
+			}
+			$(element).parent().addClass("disableSettingsField");
+			$(element).attr('disabled', 'disabled');
+		}
+	};
+
 	return {
 		setStyleInPixels  			: setStyleInPixels,		
 		addZoomToStyle  			: addZoomToStyle,	
 		getStylesInPercentages 		: getStylesInPercentages,
 		refreshDraggables			: refreshDraggables,
+		refreshHTML5EVideo			: refreshHTML5EVideo,
 		replaceIdsForSlide 			: replaceIdsForSlide,
 		replaceIdsForSlideJSON		: replaceIdsForSlideJSON,
 		generateTable 				: generateTable,
@@ -510,7 +554,8 @@ VISH.Editor.Utils = (function(V,$,undefined){
 		filterFilePath 				: filterFilePath,
 		loadTab						: loadTab,
 		hideNonDefaultTabs			: hideNonDefaultTabs,
-		showErrorDialog				: showErrorDialog
+		showErrorDialog				: showErrorDialog,
+		enableElementSettingsField	: enableElementSettingsField
 	};
 
 }) (VISH, jQuery);

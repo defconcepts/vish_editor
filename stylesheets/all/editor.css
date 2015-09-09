@@ -172,6 +172,15 @@ p.presentation_details_column_title {
 	margin-top: -9px;
 }
 
+#presentation_details_license {
+	margin-top: 23px;
+}
+
+#presentation_details_license select {
+	width: 100%;
+	margin-top: 5px;
+}
+
 #presentation_details_title {
 	width: 100%;
 	display: inline;
@@ -317,10 +326,10 @@ textarea#presentation_details_textarea {
 .animation_selected_in_fancybox {
 	background-position: -5px -6px;
 	border-radius: 13px !important;
-border: 6px solid #357ebd !important;
-opacity: 1 !important;
-width: 92px !important;
-height: 65px !important;
+	border: 6px solid #357ebd !important;
+	opacity: 1 !important;
+	width: 92px !important;
+	height: 65px !important;
 }
 
 .theme_selected_in_fancybox > div {
@@ -365,12 +374,57 @@ div#tagBoxIntro .tagit {
 	height: 59px;
 }
 
+#catalog_title{
+  width: 85%;
+  position: relative;
+  font-family: 'Open Sans', arial, sans-serif;
+  margin: 0px;
+  font-size: 19px;
+  color: #9B999D;
+}
 
-#pedagogical_clasification_button, #fill_details_later_button, #save_presentation_details {
+#catalog_tags{
+	width: 87%;
+}
+
+#catalog_button {
+  	position: relative;
+    margin-left: 188px;
+    background: #0066ff;
+    border: black;
+}
+
+#catalog_content{
+	display: none;
+	background: white;
+	height: 297px;
+	width: 270px;
+	z-index: 1162;
+	position: absolute;
+	top: 183px;
+	right: 377px;
+	padding-left: 32px;
+	border-radius: 10px;
+	border-color: black;
+	border-style: solid;
+	border-width: 1px;
+}
+
+#catalog_done_button{
+	position: relative;
+	float: right;
+	right: 10px;
+	background-color: #428bca;
+	border: none;
+	top: 5px;
+}
+
+
+#metadata_clasification_button, #fill_details_later_button, #save_presentation_details {
 	position: absolute;
 }
 
-#pedagogical_clasification_button {
+#metadata_clasification_button {
 	left: 36px;
 	width: 220px;
 }
@@ -384,46 +438,125 @@ div#tagBoxIntro .tagit {
 	margin-right: 200px;
 }
 
+#attachment_file_form {
+	margin-top: 3px;
+}
+
+.attachmentFileUpload {
+    position: relative;
+    overflow: hidden;
+    margin: 10px;
+    margin-left: 0px;
+    background: #0066ff repeat-x bottom;
+    padding: 5px 10px;
+    display: inline;
+    text-decoration: none;
+    opacity: 0.6;
+    color: #f9f9f9;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    font-family: 'Open Sans', arial, sans-serif;
+    font-size: 1.1em;
+}
+
+
+.attachmentFileUpload[disabled]{
+	background: gray !important;
+}
+
+.attachmentFileUpload input#attachment_file {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    padding: 0px;
+    filter: alpha(opacity=0);
+}
+
+#description_attachment{
+	border: medium none;
+	background-color: #EEE;
+	color: #555;
+	padding-left: 10px;
+	width: 207px;
+	border-radius: 5px;
+	height: 20px;
+}
+
+#upload_file_attachment{
+	margin-left: 25px;
+}
+
+#upload_file_attachment:disabled{
+	background: gray;
+}
+
+#upload_file_attachment:hover:disabled{
+	background: gray;
+	opacity: 0.6;
+	cursor: default;
+}
+
+#upload_file_attachment:enabled{
+	background-color: #0066ff !important;
+}
+
+#upload_icon_success{
+	display: none;
+	color: green;
+}
+
 #save_presentation_details {
 	right: 20px;
 }
 
-#pedagogical_options_fields {
+#metadata-options-tab{
+	margin-top: 20px;
+}
+
+#metadata_options_fields {
 	overflow: hidden;
 	font-size: 1.4em;
 	font-family: 'Open Sans', arial, sans-serif;
 	font-weight: 300;
 } 
 
-.pedagogical_title {
-	color: #B6B6B6;
+.metadata_title {
 	font-family: 'Open Sans', arial, sans-serif;
-	font-size: 2em;
-	left: 35px;
-	position: relative;
-	margin-bottom: 4%;
+  	font-size: 1.7em;
+  	color: #ccc;
+  	margin: 26px;
+  	margin-top: 15px;
+    margin-bottom: 15px;
 }
 
-#pedagogical_options_fields_row1 {
+#metadata_options_fields_row1 {
 	height: 250px;
 }
 
-#pedagogical_options_fields_row2 {
-	height: 248px;
+#metadata_options_fields_row2 {
+	height: 202px;
 }
 
-#pedagogical_options_fields_row3 {
+#metadata_options_fields_row3 {
 	height: 55px;
 }
 
-#pedagogical_options_fields_row1_column1 {
+#metadata_options_fields_row1_column1 {
 	float: left;
 	width: 303px;
 	height: 165px;
 	margin-left: 33px;
 }
 
-#pedagogical_options_fields_row1_column2 {
+#metadata_options_fields_row1_column2 {
 	float: left;
 	width: 338px;
 	height: 246px;
@@ -433,11 +566,54 @@ div#tagBoxIntro .tagit {
 	margin-right: -19px;
 }
 
-#pedagogical_options_fields_row1_column3 {
+#metadata_options_fields_row1_column3 {
 	float: left;
 	margin-left: 7px;
 	height: 245px;
 	border-left: 1px solid #ebebeb;
+}
+
+#publication_title {
+	margin-top: 40px;
+	margin-left: 35px;
+	font-size: 18px;
+}
+
+#publication_title p {
+	margin: 0px;
+}
+
+#publication_content {
+	margin-left: 70px;
+	font-size: 18px;
+}
+
+#publication_content p {
+    margin-top: 12px;
+    margin-bottom: 15px;
+    font-size: 17px;
+}
+
+#publication-tab{
+	overflow: hidden;
+  	font-size: 1.4em;
+  	font-family: 'Open Sans', arial, sans-serif;
+  	font-weight: 300;
+  	height: 472px;
+}
+
+#rte-tab{
+  display: block;
+  margin-left: 35px;
+  margin-top: 40px;
+  height: 432px;
+  overflow: hidden;
+  font-size: 17px;
+}
+
+#rte-tab p{
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 
 #language_tag_box_text {
@@ -556,7 +732,7 @@ input.slider_range_input {
 	text-align: center;
 }
 
-#done_in_pedagogical {
+#done_in_metadata {
 	position: absolute;
 	right: 23px;
 	font-size: 13px;
@@ -590,7 +766,7 @@ input.slider_range_input {
 	width: 107%;
 	margin-top: -33px;
 	margin-left: -20px;
-	margin-bottom: 49px;
+	margin-bottom: 8px;
 }
 
 /* Settings End */
@@ -2191,26 +2367,22 @@ div.object_wrapper {
 
 
 
-
-
 /* Tutorials with Joyride */
 
 .tut_settings {
-	top: 78px;
-	left: 396px;
-	width: 446px;
+ 	width: 446px;
+ 	left: 32.9%;
 }
 
 .theme_tut_in_settings {
-	left: 531px !important;
-	width: 350px;
+    width: 350px;
 }
 
 .tut_themes{
 	top: 217px;
 }
 
-.tut_pedagogical {
+.tut_metadata {
 	width: 700px;
 	left: 50%;
 	margin-left: -350px;
@@ -3072,6 +3244,11 @@ span.letterInChapterDialog {
 
 /* Element Settings */
 
+
+#toolbar_settings_wrapper {
+	vertical-align: top;
+	margin-top: 7px;
+}
 
 .elSettings_fancybox {
 	padding: 20px;

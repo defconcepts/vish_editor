@@ -39,7 +39,7 @@ VISH.Editor.EVideo = (function(V,$,undefined){
 			'padding' : 0,
 			"onStart"  : function(data){
 				V.Editor.Video.setAddContentMode(V.Constant.EVIDEO);
-				V.Editor.Utils.loadTab('tab_video_youtube');
+				V.Editor.Utils.loadTab(V.Editor.Video.getDefaultTab());
 			},
 			"onClosed"  : function(data){
 				V.Editor.Video.setAddContentMode(V.Constant.NONE);
@@ -116,7 +116,7 @@ VISH.Editor.EVideo = (function(V,$,undefined){
 						if(isNaN(cTime)){
 							cTime = 0;
 						}
-						var durationsPerUnit = VISH.Editor.Utils.iso8601Parser.getDurationPerUnit("PT"+ cTime + "S",true);
+						var durationsPerUnit = V.Utils.iso8601Parser.getDurationFromISOPerUnit("PT"+ cTime + "S",true);
 						$("#eVideochapters_hours").val(durationsPerUnit[4]);
 						$("#eVideochapters_minutes").val(durationsPerUnit[5]);
 						$("#eVideochapters_seconds").val(durationsPerUnit[6]);
@@ -540,7 +540,16 @@ VISH.Editor.EVideo = (function(V,$,undefined){
 		var videoBox = $(eVideoDOM).find(".evideoBox");
 		var videoDOM = V.EVideo.getVideoFromVideoBox(videoBox);
 		var duration = V.Video.getDuration(videoDOM);
-
+		
+		/*Validation to make sure, which kind of update is, not a slide displacement*/
+		if( !eVideoDOM.find(".ballSlider").hasClass("ui-slider")){
+			$(eVideoJSON.balls).each(function(index,ball){
+				if(ball.drawed != undefined){
+					ball.drawed = false;
+				}
+			});
+		}
+		
 		$(eVideoJSON.balls).each(function(index,ball){
 			if(ball.drawed != true) {
 				_drawBall(eVideoDOM,eVideoJSON,ball,duration);
