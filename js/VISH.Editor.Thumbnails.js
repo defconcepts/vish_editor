@@ -14,6 +14,8 @@ VISH.Editor.Thumbnails = (function(V,$,undefined){
 	var lastSelectedSlideThumbnail = undefined;
 	var lastSelectedSubslideThumbnail = undefined;
 	
+	var draggingThumbnail = false;
+	
 	var init = function(){
 	}
 	 
@@ -70,10 +72,18 @@ VISH.Editor.Thumbnails = (function(V,$,undefined){
 			var p = $(imgContainer).find("p");
 			$(p).addClass("ptext_barbutton");
 
+			//Add events to thumbnails
+			$(imgContainer).longpress(function(){
+				V.Editor.Scrollbar.disableScrollbar(thumbnailsDivId);
+				$(img).addClass("draggable_thumbnail");
+				draggingThumbnail = true;
+			});
+
 			//Add events to imgs
 			$(img).click(function(event){
 				_onClickSlideElement(event);
 			});
+			
 		});
 
 		//Unselect all thumbnails
@@ -123,6 +133,9 @@ VISH.Editor.Thumbnails = (function(V,$,undefined){
 				// V.Debugging.log("Dest position: " + destPosition);
 
 				V.Editor.Slides.moveSlideTo(orgPosition, destPosition);
+				V.Editor.Scrollbar.enableScrollbar(thumbnailsDivId);				
+				$(img).removeClass("draggable_thumbnail");
+				draggingThumbnail = false;
 			}
 		});
 
@@ -385,6 +398,10 @@ VISH.Editor.Thumbnails = (function(V,$,undefined){
 			return ((offsetTop > 132) && (offsetTop < 667));
 		}
 	};
+	
+	var isThumbnailBeingDragged = function(){
+		return draggingThumbnail;
+	}
 
 	return {
 		init              			: init,
@@ -397,7 +414,8 @@ VISH.Editor.Thumbnails = (function(V,$,undefined){
 		getThumbnailURL				: getThumbnailURL,
 		getDefaultThumbnailURL 		: getDefaultThumbnailURL,
 		getThumbnailForSlide 		: getThumbnailForSlide,
-		isThumbnailVisible			: isThumbnailVisible
+		isThumbnailVisible			: isThumbnailVisible,
+		isThumbnailBeingDragged     : isThumbnailBeingDragged
 	}
 
 }) (VISH, jQuery);

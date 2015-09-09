@@ -932,6 +932,19 @@ input.slider_range_input {
 	margin: 0px 5px 0px 5px;
 }
 
+.draggable_thumbnail {
+	-webkit-box-shadow: 15px 15px 18px rgba(50, 50, 50, 0.17);
+	-moz-box-shadow:    15px 15px 18px rgba(50, 50, 50, 0.17);
+	box-shadow:         15px 15px 18px rgba(50, 50, 50, 0.17);
+	cursor: move, pointer;
+	background-image: url("/images/icons/selection.gif");
+	border: none;
+	width: 72%;
+	padding: 1px;
+	z-index: 20;
+	opacity: 1;
+}
+
 #slides_list img.image_barbutton {
 	display: block;
 	width: 73%;

@@ -80,12 +80,22 @@ VISH.Editor.Scrollbar = (function(V,$,undefined){
 		}
 	};
   
+  	var disableScrollbar = function(containerId){
+		  $("#"+containerId).mCustomScrollbar("disable");		  
+	};
+	
+	var enableScrollbar = function(containerId){
+		  $("#"+containerId).mCustomScrollbar("update");		  
+	};
+  
 	var insertElement = function(containerId,element,posc){
 	};
 
 	return {
 		createScrollbar	  : createScrollbar,
 		cleanScrollbar    : cleanScrollbar,
+		disableScrollbar  : disableScrollbar,
+		enableScrollbar	  : enableScrollbar,
 		goToElement		  : goToElement
 	};
 

@@ -74,7 +74,7 @@ VISH.Editor = (function(V,$,undefined){
 		V.Status.init(function(){
 			//Status loading finishes
 			_initAferStatusLoaded(options,presentation);
-		});
+		});		
 	}
 
 	var _initAferStatusLoaded = function(options,presentation){
@@ -133,7 +133,16 @@ VISH.Editor = (function(V,$,undefined){
 			initialPresentation = false;
 			V.Editor.Settings.loadPresentationSettings();
 			_initAferPresentationLoaded(options,presentation);
-		}
+		}		
+		
+		//Used to control context menu activation
+		window.oncontextmenu = function(event) {
+			if(V.Editor.Thumbnails.isThumbnailBeingDragged()){
+     			event.preventDefault();
+     			event.stopPropagation();
+     			return false;
+			}
+		};	
 	};
 	
 	var _initAferPresentationLoaded = function(options,presentation){
